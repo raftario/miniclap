@@ -15,7 +15,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "prepublish": "jest && tsc",
+    "prepublishOnly": "jest && tsc",
     "test": "jest"
   },
   "dependencies": {
