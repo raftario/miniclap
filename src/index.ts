@@ -174,6 +174,7 @@ export function parse<P extends Params>(
     if (args[key] === undefined) {
       if (param.type === "bool") {
         args[key] = false as any;
+        delete args[key];
       } else if (!param.optional) {
         errors.missing.push(key as any);
       }

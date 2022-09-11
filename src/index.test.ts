@@ -132,10 +132,12 @@ describe("errors", () => {
   });
 
   test("unexpected", () => {
-    const [val, err] = miniclap.parse("--fruit apple", {});
+    const [val, err] = miniclap.parse("--fruit apple", {
+      verbose: { type: "bool" },
+    });
 
     expect(val).toBeNull();
-    expect(err?.unexpected).toContain("fruit");
+    expect(err?.unexpected).toEqual(["fruit"]);
   });
 });
 
