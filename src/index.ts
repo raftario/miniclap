@@ -114,7 +114,7 @@ export function parse<P extends Params>(
 
     const parser: (arg: string) => [unknown, null] | [null, ParseError] =
       param.type === "bool"
-        ? () => [true, null]
+        ? (arg: string) => [!!arg, null]
         : (arg: string) => {
             try {
               return [param.type ? param.type(arg) : arg, null];
@@ -136,7 +136,7 @@ export function parse<P extends Params>(
       }
     }
 
-    if (param.short && raw[param.short]) {
+    if (param.short && param.short in raw) {
       const [val, err] = parser(raw[param.short]);
       delete raw[param.short];
 
@@ -149,7 +149,7 @@ export function parse<P extends Params>(
 
     if (param.long) {
       for (const p of param.long) {
-        if (raw[p]) {
+        if (p in raw) {
           const [val, err] = parser(raw[p]);
           delete raw[p];
 
@@ -174,7 +174,6 @@ export function parse<P extends Params>(
     if (args[key] === undefined) {
       if (param.type === "bool") {
         args[key] = false as any;
-        delete args[key];
       } else if (!param.optional) {
         errors.missing.push(key as any);
       }
