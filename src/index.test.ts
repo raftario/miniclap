@@ -120,6 +120,13 @@ describe("errors", () => {
     expect(val).toBeNull();
     expect(err?.missing).toContain("fruit");
   });
+
+  test("unexpected", () => {
+    const [val, err] = miniclap.parse("--fruit apple", {});
+
+    expect(val).toBeNull();
+    expect(err?.unexpected).toContain("fruit");
+  });
 });
 
 test("complex", () => {

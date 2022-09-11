@@ -42,6 +42,7 @@ export type ArgErrors<P extends Params> = {
       ? never
       : K;
   }[keyof P][];
+  unexpected: string[];
 };
 
 type ParseReturn<P extends Params> =
@@ -75,7 +76,11 @@ export function parse<P extends Params>(
   });
 
   const args = {} as Args<P>;
-  const errors = { invalid: {}, missing: [] as string[] } as ArgErrors<P>;
+  const errors = {
+    invalid: {},
+    missing: [] as string[],
+    unexpected: [] as string[],
+  } as ArgErrors<P>;
 
   for (const key in params) {
     const param = params[key];
@@ -107,6 +112,8 @@ export function parse<P extends Params>(
     for (const mode of ["short", "long"] as const) {
       if (param[mode] && raw[param[mode]!]) {
         const [val, err] = parser(raw[param[mode]!]);
+        delete raw[param[mode]!];
+
         if (err) {
           errors.invalid[key] = err;
         } else {
@@ -133,7 +140,20 @@ export function parse<P extends Params>(
     }
   }
 
-  if (Object.keys(errors.invalid).length > 0 || errors.missing.length > 0) {
+  for (const arg of raw._) {
+    if (arg === "") continue;
+    errors.unexpected.push(arg);
+  }
+  for (const opt in raw) {
+    if (opt === "_") continue;
+    errors.unexpected.push(opt);
+  }
+
+  if (
+    Object.keys(errors.invalid).length > 0 ||
+    errors.missing.length > 0 ||
+    errors.unexpected.length > 0
+  ) {
     return [null, errors];
   } else {
     return [args, null];
