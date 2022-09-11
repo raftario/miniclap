@@ -1,6 +1,6 @@
 {
   "name": "miniclap",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Minimal typed argument parsing",
   "author": "Raphaël Thériault <self@raftar.io>",
   "license": "MIT",
