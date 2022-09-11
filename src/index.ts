@@ -3,7 +3,7 @@ import minimist from "minimist";
 export type Parser<T> = (arg: string) => T;
 
 export type Param = {
-  long?: string;
+  long?: string | string[];
   short?: string;
 } & (
   | { type?: Parser<unknown>; optional?: false; default?: string }
@@ -45,9 +45,14 @@ export type ArgErrors<P extends Params> = {
   unexpected: string[];
 };
 
+export type ParamsHelp = {
+  params: string[];
+  options: string[];
+};
+
 type ParseReturn<P extends Params> =
-  | [args: Args<P>, errors: null]
-  | [args: null, errors: ArgErrors<P>];
+  | [args: Args<P>, errors: null, help: ParamsHelp]
+  | [args: null, errors: ArgErrors<P>, help: ParamsHelp];
 export function parse<P extends Params>(
   s: string | string[],
   params: P
@@ -55,17 +60,39 @@ export function parse<P extends Params>(
   const options: string[] = [];
   const flags: string[] = [];
 
+  const helpParams: string[] = [];
+  const helpOptions: string[] = [];
+
   for (const key in params) {
     const param = params[key];
     const type = param.type === "bool" ? flags : options;
+    const help = [];
 
     if (param.short) {
       type.push(param.short);
+      help.push(`-${param.short}`);
+    }
+    if (param.long && typeof param.long === "string") {
+      param.long = [param.long];
     }
     if (param.long) {
-      type.push(param.long);
+      for (const p of param.long) {
+        type.push(p);
+        help.push(`--${p}`);
+      }
     }
+
+    if (param.type !== "bool") {
+      if (param.default) {
+        help.push(`<${key}=${param.default}>`);
+      } else {
+        help.push(`<${key}>`);
+      }
+    }
+    (param.short || param.long ? helpOptions : helpParams).push(help.join(" "));
   }
+
+  const help = { params: helpParams, options: helpOptions };
 
   if (typeof s === "string") {
     s = s.split(" ");
@@ -109,15 +136,28 @@ export function parse<P extends Params>(
       }
     }
 
-    for (const mode of ["short", "long"] as const) {
-      if (param[mode] && raw[param[mode]!]) {
-        const [val, err] = parser(raw[param[mode]!]);
-        delete raw[param[mode]!];
+    if (param.short && raw[param.short]) {
+      const [val, err] = parser(raw[param.short]);
+      delete raw[param.short];
 
-        if (err) {
-          errors.invalid[key] = err;
-        } else {
-          args[key] = val as any;
+      if (err) {
+        errors.invalid[key] = err;
+      } else {
+        args[key] = val as any;
+      }
+    }
+
+    if (param.long) {
+      for (const p of param.long) {
+        if (raw[p]) {
+          const [val, err] = parser(raw[p]);
+          delete raw[p];
+
+          if (err) {
+            errors.invalid[key] = err;
+          } else {
+            args[key] = val as any;
+          }
         }
       }
     }
@@ -154,9 +194,9 @@ export function parse<P extends Params>(
     errors.missing.length > 0 ||
     errors.unexpected.length > 0
   ) {
-    return [null, errors];
+    return [null, errors, help];
   } else {
-    return [args, null];
+    return [args, null, help];
   }
 }
 

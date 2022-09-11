@@ -31,6 +31,16 @@ describe("basic", () => {
     expect(err).toBeNull();
     expect(val).toEqual({ fruit: "apple", vegetable: "carrot" });
   });
+
+  test("long alias", () => {
+    const [val, err] = miniclap.parse("--veggie carrot --fruit=apple", {
+      fruit: { long: "fruit" },
+      vegetable: { long: ["vegetable", "veggie"] },
+    });
+
+    expect(err).toBeNull();
+    expect(val).toEqual({ fruit: "apple", vegetable: "carrot" });
+  });
 });
 
 describe("types", () => {
@@ -130,7 +140,7 @@ describe("errors", () => {
 });
 
 test("complex", () => {
-  const [val, err] = miniclap.parse(
+  const [val, err, help] = miniclap.parse(
     "-v apple.jpg -w 720 --height=480 apple.png",
     {
       in: {},
@@ -141,7 +151,7 @@ test("complex", () => {
       rotate: {
         type: miniclap.types.number,
         short: "r",
-        long: "rotate",
+        long: ["rotate", "rot"],
         default: "0.0",
       },
     }
@@ -155,5 +165,14 @@ test("complex", () => {
     width: 720,
     height: 480,
     rotate: 0.0,
+  });
+  expect(help).toEqual({
+    params: ["<in>", "<out>"],
+    options: [
+      "-v",
+      "-w --width <width>",
+      "-h --height <height>",
+      "-r --rotate --rot <rotate=0.0>",
+    ],
   });
 });
