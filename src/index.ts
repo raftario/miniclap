@@ -94,8 +94,104 @@ export function parse<P extends Params>(
 
   const help = { params: helpParams, options: helpOptions };
 
+  function split(s: string): string[] {
+    enum State {
+      Skipping,
+      Reading,
+      Single,
+      Double,
+    }
+
+    let state: State = State.Skipping;
+    let i = 0;
+    let current = "";
+    const all: string[] = [];
+
+    while (i < s.length) {
+      const c = s[i++];
+      switch (state) {
+        case State.Skipping: {
+          if (c === " " || c === "\t") {
+            continue;
+          } else if (c === "'") {
+            state = State.Single;
+            all.push(current);
+            current = "";
+          } else if (c === '"') {
+            state = State.Double;
+            all.push(current);
+            current = "";
+          } else {
+            state = State.Reading;
+            all.push(current);
+            current = c;
+          }
+          break;
+        }
+        case State.Reading: {
+          if (c === " " || c === "\t") {
+            state = State.Skipping;
+          } else {
+            current += c;
+          }
+          break;
+        }
+        case State.Single: {
+          if (c === "'") {
+            state = State.Skipping;
+          } else {
+            current += c;
+          }
+          break;
+        }
+        case State.Double: {
+          if (c === '"') {
+            state = State.Skipping;
+          } else if (c === "\\") {
+            const cc = s[i++];
+            switch (cc) {
+              case "b": {
+                current += "\b";
+                break;
+              }
+              case "f": {
+                current += "\f";
+                break;
+              }
+              case "n": {
+                current += "\n";
+                break;
+              }
+              case "r": {
+                current += "\r";
+                break;
+              }
+              case "t": {
+                current += "\t";
+                break;
+              }
+              case "v": {
+                current += "\v";
+                break;
+              }
+              default: {
+                current += cc;
+              }
+            }
+          } else {
+            current += c;
+          }
+          break;
+        }
+      }
+    }
+    all.push(current);
+
+    return all.filter((s) => s.length > 0);
+  }
+
   if (typeof s === "string") {
-    s = s.split(" ");
+    s = split(s);
   }
   const raw = minimist(s, {
     string: options,

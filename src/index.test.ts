@@ -142,9 +142,29 @@ describe("errors", () => {
   });
 });
 
+describe("quotes", () => {
+  test("single", () => {
+    const [val, err] = miniclap.parse("--fruit 'apple & bananas'", {
+      fruit: { long: "fruit" },
+    });
+
+    expect(err).toBeNull();
+    expect(val).toEqual({ fruit: "apple & bananas" });
+  });
+
+  test("double", () => {
+    const [val, err] = miniclap.parse('--fruit "> apple\\n> bananas"', {
+      fruit: { long: "fruit" },
+    });
+
+    expect(err).toBeNull();
+    expect(val).toEqual({ fruit: "> apple\n> bananas" });
+  });
+});
+
 test("complex", () => {
   const [val, err, help] = miniclap.parse(
-    "-v apple.jpg -w 720 --height=480 apple.png",
+    "-v apple.jpg -w  720 --height=480 'apple.png'",
     {
       in: {},
       out: {},
