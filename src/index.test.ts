@@ -33,13 +33,14 @@ describe("basic", () => {
   });
 
   test("long alias", () => {
-    const [val, err] = miniclap.parse("--veggie carrot --fruit=apple", {
+    const [val, err] = miniclap.parse("--veggie carrot --fruit=apple --debug", {
       fruit: { long: "fruit" },
-      vegetable: { long: ["vegetable", "veggie"] },
+      vegetable: { long: ["vegetable", "veggie", "veg"] },
+      verbose: { long: ["verbose", "debug", "log"], type: "bool" },
     });
 
     expect(err).toBeNull();
-    expect(val).toEqual({ fruit: "apple", vegetable: "carrot" });
+    expect(val).toEqual({ fruit: "apple", vegetable: "carrot", verbose: true });
   });
 });
 

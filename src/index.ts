@@ -155,6 +155,8 @@ export function parse<P extends Params>(
 
           if (err) {
             errors.invalid[key] = err;
+          } else if (param.type === "bool") {
+            args[key] ||= val as any;
           } else {
             args[key] = val as any;
           }
