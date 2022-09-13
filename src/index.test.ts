@@ -176,6 +176,7 @@ test("complex", () => {
         short: "r",
         long: ["rotate", "rot"],
         default: "0.0",
+        name: "degrees",
       },
     }
   );
@@ -195,7 +196,7 @@ test("complex", () => {
       "-v",
       "-w --width <width>",
       "-h --height <height>",
-      "-r --rotate --rot <rotate=0.0>",
+      "-r --rotate --rot <degrees=0.0>",
     ],
   });
 });

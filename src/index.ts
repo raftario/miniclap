@@ -6,9 +6,24 @@ export type Param = {
   long?: string | string[];
   short?: string;
 } & (
-  | { type?: Parser<unknown>; optional?: false; default?: string }
-  | { type?: Parser<unknown>; optional: true; default?: undefined }
-  | { type: "bool"; optional?: undefined; default?: undefined }
+  | {
+      type?: Parser<unknown>;
+      optional?: false;
+      default?: string;
+      name?: string;
+    }
+  | {
+      type?: Parser<unknown>;
+      optional: true;
+      default?: undefined;
+      name?: string;
+    }
+  | {
+      type: "bool";
+      optional?: undefined;
+      default?: undefined;
+      name?: undefined;
+    }
 );
 export type Params = { [key: string]: Param };
 
@@ -84,9 +99,9 @@ export function parse<P extends Params>(
 
     if (param.type !== "bool") {
       if (param.default) {
-        help.push(`<${key}=${param.default}>`);
+        help.push(`<${param.name ?? key}=${param.default}>`);
       } else {
-        help.push(`<${key}>`);
+        help.push(`<${param.name ?? key}>`);
       }
     }
     (param.short || param.long ? helpOptions : helpParams).push(help.join(" "));
